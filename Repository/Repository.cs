@@ -2,7 +2,9 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
+using mvcBlog.Data;
 
 namespace mvcBlog.Repository
 {
@@ -22,9 +24,33 @@ namespace mvcBlog.Repository
             return await _dbSet.ToListAsync();
         }
 
+        public async Task<IEnumerable<T>> GetAllIncludingAsync(params Expression<Func<T, object>>[] includeProperties)
+        {
+            IQueryable<T> query = _dbSet;
+            
+            foreach (var includeProperty in includeProperties)
+            {
+                query = query.Include(includeProperty);
+            }
+            
+            return await query.ToListAsync();
+        }
+
         public async Task<T> GetByIdAsync(int id)
         {
             return await _dbSet.FindAsync(id);
+        }
+
+        public async Task<T> GetByIdIncludingAsync(int id, params Expression<Func<T, object>>[] includeProperties)
+        {
+            IQueryable<T> query = _dbSet;
+            
+            foreach (var includeProperty in includeProperties)
+            {
+                query = query.Include(includeProperty);
+            }
+            
+            return await query.FirstOrDefaultAsync(e => EF.Property<int>(e, "Id") == id);
         }
 
         public async Task AddAsync(T entity)
@@ -55,8 +81,7 @@ namespace mvcBlog.Repository
 
         public async Task<bool> ExistsAsync(int id)
         {
-            var entity = await GetByIdAsync(id);
-            return entity != null;
+            return await _dbSet.AnyAsync(e => EF.Property<int>(e, "Id") == id);
         }
 
         public async Task SaveAsync()

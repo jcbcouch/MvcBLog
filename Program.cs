@@ -3,6 +3,7 @@ using mvcBlog.Data;
 using Microsoft.AspNetCore.Identity;
 using mvcBlog.Models;
 using mvcBlog.Repository;
+using mvcBlog.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,9 +13,6 @@ builder.Services.AddControllersWithViews();
 // Add DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-// Register the generic repository
-builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
 // Add Identity services
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options => 
@@ -38,6 +36,12 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = "/Account/AccessDenied";
 });
 
+// Register the generic repository
+builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+
+// Register PostService
+builder.Services.AddScoped<IPostService, PostService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -52,7 +56,6 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-// Add authentication middleware before authorization
 app.UseAuthentication();
 app.UseAuthorization();
 
