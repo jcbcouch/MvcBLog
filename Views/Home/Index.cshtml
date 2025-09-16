@@ -1,8 +1,36 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model IEnumerable<mvcBlog.Models.Post>
+
+@{
+    ViewData["Title"] = "Blog Posts";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container mt-4">
+    <h1>@ViewData["Title"]</h1>
+    
+    <div class="row">
+        @foreach (var post in Model)
+        {
+            <div class="col-md-8 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title">@post.Title</h2>
+                        <p class="text-muted">
+                            Posted by <a asp-controller="Posts" asp-action="GetPostsByUserId" asp-route-userId="@post.UserId" class="text-decoration-none">@post.User?.UserName</a> on @post.CreatedAt.ToString("MMMM dd, yyyy")
+                        </p>
+                        <p class="card-text">
+                            @{
+                                var preview = post.Body.Length > 200 
+                                    ? post.Body.Substring(0, 200) + "..." 
+                                    : post.Body;
+                            }
+                            @preview
+                        </p>
+                        <a href="@Url.Action("Details", "Posts", new { id = post.Id })" class="btn btn-primary">
+                            Read More →
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
 </div>

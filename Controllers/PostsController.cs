@@ -8,7 +8,7 @@ using mvcBlog.Services;
 
 namespace mvcBlog.Controllers
 {
-    [Authorize]
+    // [Authorize]
     public class PostsController : Controller
     {
         private readonly IPostService _postService;
@@ -20,12 +20,25 @@ namespace mvcBlog.Controllers
             _userManager = userManager;
         }
 
-        // GET: Posts
-        [AllowAnonymous]
-        public async Task<IActionResult> Index()
+        [HttpGet("user/{userId}")]
+        public async Task<IActionResult> GetPostsByUserId(string userId)
         {
-            var posts = await _postService.GetAllPostsWithUsersAsync();
-            return View(posts);
+            if (string.IsNullOrEmpty(userId))
+            {
+                return BadRequest("User ID is required");
+            }
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return NotFound($"User with ID {userId} not found");
+            }
+
+            var allPosts = await _postService.GetAllPostsWithUsersAsync();
+            var userPosts = allPosts.Where(p => p.UserId == userId).ToList();
+
+            ViewData["Title"] = $"Posts by {user.UserName}";
+            return View("UserPosts", userPosts);
         }
     }
 }
